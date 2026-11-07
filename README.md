@@ -20,7 +20,7 @@ flowboard/
 ├── requirements.txt
 ├── README.md
 ├── LICENSE
-├── UI_CHECKLIST.md                # Strict inventory of every interactive control
+├── UI_CHECKLIST.md               # Strict inventory of every interactive control
 ├── test_e2e.py                   # Automated Playwright test suite (15/15 passing)
 ├── flowboard/
 │   ├── settings.py               # Django 5 + Channels settings with SQLite WAL
