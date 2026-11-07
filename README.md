@@ -1,216 +1,540 @@
-# Flowboard — Collaborative Project Management Tool
+# FLOWBOARD — Collaborative Project Management Tool
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
-[![Django 5.1](https://img.shields.io/badge/django-5.1-green.svg)](https://www.djangoproject.com/)
-[![Channels 4.3](https://img.shields.io/badge/channels-4.3-teal.svg)](https://channels.readthedocs.io/)
-[![Playwright E2E](https://img.shields.io/badge/E2E-Playwright%20Passing-brightgreen.svg)](test_e2e.py)
+<div align="center">
 
-**Flowboard** is a modern, minimal, human-crafted collaborative project management platform (Kanban/Trello/Asana style) built for speed, restraint, and real-time synchronization.
+**Plan Together. Work Smarter. Stay in Sync.**
 
-Developed as a college software engineering submission for **Task 3: Project Management Tool**, following professional SaaS design principles: content-first, zero AI-slop (no gradients, no glowing blobs, no marketing cliches), sub-second responsiveness, and 100% zero-dead-UI.
+A modern, minimal, real-time collaborative project management platform built around Kanban workflows, team coordination, and seamless synchronization.
+
+**CodeAlpha Full Stack Development Internship · Task 3**
+
+<br/>
+
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-5.1-092E20?style=for-the-badge&logo=django&logoColor=white)
+![Channels](https://img.shields.io/badge/Django_Channels-4.3-0C4B33?style=for-the-badge&logo=django&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-WAL-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6%2B-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Playwright](https://img.shields.io/badge/Playwright-E2E_Tests-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
+
+[Features](#-key-features) · [Architecture](#-architecture) · [Tech Stack](#-technology-stack) · [Installation](#-installation--setup) · [Demo](#-demo-credentials) · [Testing](#-automated-testing)
+
+</div>
 
 ---
 
-## Architecture & Project Structure
+## Overview
+
+**Flowboard** is a full-stack collaborative project management platform developed as **Task 3 of the CodeAlpha Full Stack Development Internship**.
+
+Inspired by modern project management tools such as Trello, Asana, and Kanban-based workflow systems, Flowboard helps teams organize projects, manage tasks, assign responsibilities, and collaborate in real time.
+
+Built with **Python, Django, Django Channels, SQLite, and Vanilla JavaScript**, the platform combines a structured backend architecture with a responsive, minimal interface.
+
+Its real-time collaboration system uses WebSockets to synchronize board activities, display active collaborators, and deliver notifications without requiring page reloads.
+
+**Core philosophy:** A focused workspace where every interaction is meaningful, every update is synchronized, and every control works as expected.
+
+---
+
+## Key Features
+
+### 1. Authentication & User Profiles
+
+- User registration, login, and logout.
+- Login using username or email.
+- Profile management with display name and initials-based avatar fallback.
+- Instant light and dark theme switching.
+- Inline field-level form validation.
+
+### 2. Project Management
+
+- Create, edit, and delete projects.
+- Project ownership and role-based access control.
+- Custom project descriptions and color tags.
+- Invite team members using usernames or email addresses.
+- Assign project roles: Owner and Member.
+- Owner-controlled member management.
+- Members can leave projects.
+- Project membership verification across application endpoints.
+
+### 3. Interactive Kanban Boards
+
+Manage workflows through customizable Kanban boards.
+
+**Default workflow columns:**
+
+| Column | Purpose |
+|---|---|
+| To Do | Tasks waiting to be started |
+| In Progress | Tasks currently being worked on |
+| Review | Tasks awaiting review |
+| Done | Completed tasks |
+
+Additional capabilities:
+
+- Create, rename, reorder, and delete columns.
+- Create tasks directly inside board columns.
+- Edit tasks using an interactive modal or drawer.
+- Assign tasks to team members.
+- Set due dates and priority levels.
+- Add custom task labels.
+- Drag and drop cards between columns.
+- Persist task positions in the database.
+- Keyboard-accessible task movement using `Alt + Arrow Keys`.
+
+### 4. Task Discussions & Mentions
+
+- Chronological comments inside task detail drawers.
+- Delete your own comments.
+- Automatic `@username` mention detection.
+- Real-time notifications when users are mentioned.
+- Contextual discussions connected to individual tasks.
+
+### 5. Activity Tracking
+
+Maintain a chronological history of project and task activities.
+
+The activity log records:
+
+- Task creation and deletion.
+- Task movement between columns.
+- Task renaming.
+- Assignment changes.
+- Comment activity.
+- Due date modifications.
+- Other project-related updates.
+
+### 6. Search & Filters
+
+- Search across accessible projects and tasks.
+- Filter board cards by text query.
+- Filter by assigned user.
+- Filter by priority.
+- Filter by custom labels.
+- Global search across projects and tasks.
+
+### 7. My Tasks Dashboard
+
+A centralized view of tasks assigned to the currently authenticated user.
+
+Tasks are organized into:
+
+- Overdue
+- Due Today
+- Upcoming 7 Days
+- Later
+- No Due Date
+
+This makes it easier to track personal responsibilities across multiple projects.
+
+### 8. Real-Time Collaboration
+
+<badge color="success">WebSocket Powered</badge>
+
+Flowboard uses Django Channels and WebSockets to synchronize project activities between connected collaborators.
+
+**Live Board Synchronization**
+- Real-time task creation and deletion.
+- Instant task movement between columns.
+- Live task edits and column modifications.
+- Immediate comment broadcasting.
+- Active collaborator presence indicators.
+- Automatic reconnection with exponential backoff.
+- Heartbeat pings to maintain connections.
+
+**Live Notifications**
+- Task assignment notifications.
+- Comment mention notifications.
+- Project invitation notifications.
+- Real-time notification badge updates.
+- Toast notifications for incoming events.
+
+### 9. Notification System
+
+- Dedicated notification interface.
+- Real-time notification delivery.
+- Unread notification count.
+- Notification dropdown and full notification list.
+- Mark notifications as read.
+- Per-user notification WebSocket connections.
+
+### 10. Security & Access Control
+
+- Login protection across application routes.
+- Project membership validation.
+- Role-based project permissions.
+- Owner-only project management operations.
+- CSRF validation on POST requests.
+- WebSocket connection authorization.
+- Custom 403, 404, and 500 error pages.
+- Server-side validation for sensitive operations.
+
+### 11. Responsive & Interactive Interface
+
+- Minimal, content-first SaaS design.
+- Light and dark color themes.
+- Responsive navigation and sidebar.
+- Interactive modals and drawers.
+- Drag-and-drop task management.
+- Toast notifications and loading feedback.
+- Keyboard-accessible interactions.
+- Functional controls throughout the application.
+
+---
+
+## Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Backend | Python 3.13, Django 5.1 |
+| Real-Time Communication | Django Channels 4.3, WebSockets |
+| ASGI Server | Daphne 4.2 |
+| Database | SQLite with WAL mode |
+| Frontend | HTML5, CSS3, Vanilla JavaScript |
+| Templates | Django Template Engine |
+| Asynchronous Requests | JavaScript Fetch API, JSON |
+| Browser Communication | WebSocket API |
+| End-to-End Testing | Playwright |
+| Test Automation | Python |
+
+### Architectural Decisions
+
+**Django Channels:** Enables asynchronous WebSocket communication for live board updates, user presence, and notifications.
+
+**Transactional Service Layer:** `projects/services.py` centralizes database mutations, activity logging, notification dispatch, and event broadcasting.
+
+**SQLite WAL Mode:** Uses Write-Ahead Logging to improve database read/write concurrency.
+
+**In-Memory Channel Layer:** Uses Django Channels' `InMemoryChannelLayer`, eliminating the need for Redis or an external message broker in the configured local setup.
+
+**Vanilla JavaScript:** Keeps the frontend lightweight without depending on React, Vue, or external animation libraries.
+
+---
+
+## Project Architecture
 
 ```text
 flowboard/
+│
 ├── manage.py
 ├── requirements.txt
 ├── README.md
 ├── LICENSE
-├── UI_CHECKLIST.md               # Strict inventory of every interactive control
-├── test_e2e.py                   # Automated Playwright test suite (15/15 passing)
+├── UI_CHECKLIST.md
+├── test_e2e.py
+│
 ├── flowboard/
-│   ├── settings.py               # Django 5 + Channels settings with SQLite WAL
-│   ├── asgi.py                   # ProtocolTypeRouter with Daphne & Channels
-│   ├── wsgi.py                   # WSGI entrypoint
-│   ├── routing.py                # WebSocket URL router
-│   └── urls.py                   # Top-level routing & custom 403/404/500 handlers
-├── accounts/                     # User authentication & profile settings
-│   ├── models.py                 # Profile with avatar, initials, and theme
-│   ├── views.py                  # Login, register, logout, profile update
-│   └── forms.py                  # Client & server validated auth forms
-├── projects/                     # Core Kanban & project management
-│   ├── models.py                 # Project, Member, Column, Task, Comment, Activity
-│   ├── services.py               # Synchronized transactional mutations & event broadcast
-│   ├── consumers.py              # BoardConsumer (presence + board events)
-│   ├── views.py                  # Boards, project settings, fetch() JSON APIs
-│   └── management/commands/
-│       └── seed_demo.py          # Seeds 5 users, 2 rich projects, 22+ tasks
-├── notifications/                # Real-time notifications system
-│   ├── models.py                 # Notification model with indexing
-│   ├── consumers.py              # NotificationConsumer per-user channel
-│   └── views.py                  # Dropdown API, list view, mark-as-read
-├── core/                         # Landing, search, and cross-project views
-│   ├── views.py                  # Split-screen landing, My Tasks, Global Search
-│   └── context_processors.py     # Global sidebar projects & unread count
+│   ├── settings.py
+│   ├── asgi.py
+│   ├── wsgi.py
+│   ├── routing.py
+│   └── urls.py
+│
+├── accounts/
+│   ├── models.py
+│   ├── views.py
+│   └── forms.py
+│
+├── projects/
+│   ├── models.py
+│   ├── services.py
+│   ├── consumers.py
+│   ├── views.py
+│   └── management/
+│       └── commands/
+│           └── seed_demo.py
+│
+├── notifications/
+│   ├── models.py
+│   ├── consumers.py
+│   └── views.py
+│
+├── core/
+│   ├── views.py
+│   └── context_processors.py
+│
 ├── static/
 │   ├── css/
-│   │   ├── tokens.css            # Calm design tokens & dark/light palettes
-│   │   └── style.css             # Responsive layout, modals, cards, drawers
+│   │   ├── tokens.css
+│   │   └── style.css
+│   │
 │   └── js/
-│       ├── app.js                # CSRF fetch() wrapper, theme, modals, toasts
-│       ├── websocket.js          # Reconnecting WebSocket client with backoff
-│       ├── dragdrop.js           # Smooth drag & drop with keyboard navigation
-│       ├── board.js              # Live board manager, filters, drawer, comments
-│       └── notifications.js      # Notification bell badge & dropdown
-└── templates/                    # Semantic HTML5 templates
-    ├── base.html                 # App shell with Lucide SVGs & responsive sidebar
-    ├── 403.html / 404.html / 500.html
-    ├── accounts/                 # login.html, register.html, profile.html
-    ├── core/                     # landing.html, my_tasks.html, search.html
-    ├── projects/                 # project_list.html, board.html, project_settings.html
-    └── notifications/            # list.html
+│       ├── app.js
+│       ├── websocket.js
+│       ├── dragdrop.js
+│       ├── board.js
+│       └── notifications.js
+│
+└── templates/
+    ├── base.html
+    ├── 403.html
+    ├── 404.html
+    ├── 500.html
+    ├── accounts/
+    ├── core/
+    ├── projects/
+    └── notifications/
 ```
 
----
+### Core Django Applications
 
-## Tech Stack & Architectural Decisions
-
-- **Backend**: Python 3.13, Django 5.1, Django ORM, SQLite with WAL (`Write-Ahead Logging`) optimization and `NORMAL` synchronous mode for multi-threaded concurrency without table lockouts.
-- **Real-Time WebSockets**: Django Channels 4.3 + Daphne 4.2 ASGI server with the in-memory channel layer (`channels.layers.InMemoryChannelLayer`). **Zero Redis or external message brokers required.**
-- **Frontend**: Django Templates, Pure CSS with semantic design tokens (`tokens.css`, `style.css`), and Vanilla JavaScript modules. **Zero JavaScript frameworks or animation libraries.**
-- **Transactional Service Layer (`projects/services.py`)**: All database writes, audit logging, notification dispatches, and WebSocket events are unified in single transactional service calls so REST and real-time sockets never get out of sync.
-- **Automated Verification**: Full automated test harness with Playwright (`test_e2e.py`) verifying multi-user live synchronization across concurrent browser windows.
-
----
-
-## Core Capabilities (Task 3 Grading Criteria)
-
-1. **Authentication & Profile**:
-   - Registration, login by username or email, session logout.
-   - Profile management with display name, initials avatar fallback, and instant Light/Dark theme toggle.
-   - Inline field-level validation errors.
-2. **Projects & Role-Based Access Control**:
-   - Create, edit, and delete projects (Owner only).
-   - Project description and color tags (Blue, Teal, Indigo, Slate).
-   - Invite team members by username or email; assign roles (`Owner` vs `Member`).
-   - Remove members (Owner only); leave project (Members only); members-only access checks on all endpoints.
-3. **Interactive Kanban Boards**:
-   - Default columns: *To Do*, *In Progress*, *Review*, *Done*.
-   - Column CRUD: add, rename, reorder, and delete columns.
-   - Task CRUD: inline fast creation, modal/drawer editor with title, description, assignee, due date, priority (Low/Medium/High), and custom label chips.
-   - Smooth Drag-and-Drop between and within columns with optimistic reordering and persistent database indices.
-   - Keyboard accessible card movement via `Alt + Arrow keys`.
-4. **Task Discussions & Mentions**:
-   - Chronological comments thread inside the task detail drawer.
-   - Delete own comments.
-   - Automatic `@username` mention detection with real-time notification dispatch.
-5. **Activity Log**:
-   - Audited chronological change log per task and per project (creations, moves, renames, assignments, comments, due date changes).
-6. **Search & Filters**:
-   - Real-time client-side board filter bar by text query, assignee, priority, and label tags.
-   - Global search across all accessible tasks and projects.
-   - "My Tasks" page listing all tasks assigned to the current user across all projects, grouped by due date (*Overdue*, *Due Today*, *Upcoming 7 Days*, *Later*, *No Due Date*).
-7. **Real-time WebSockets & Presence**:
-   - Board WebSocket (`ws/board/<project_id>/`): Live presence avatars in the top bar showing connected collaborators; instant card moves, creations, edits, deletions, column modifications, and comments broadcasted with subtle glide and highlight animations.
-   - Notification WebSocket (`ws/notifications/`): Live badge count increments and toast notifications for task assignments, comment mentions, and project invites.
-   - Auto-reconnect with exponential backoff and heartbeat pings.
-8. **Security & Zero Dead UI**:
-   - Login required across all application routes.
-   - Project-membership checks on every endpoint and WebSocket connection.
-   - CSRF token validation on all `POST` requests.
-   - Every button, form, and link is 100% functional with loading, toast feedback, and error dialogs. Custom 403, 404, and 500 error pages.
+| Application | Responsibility |
+|---|---|
+| `accounts` | Authentication and profile management |
+| `projects` | Projects, Kanban boards, tasks, comments, and activity |
+| `notifications` | Notification management and real-time delivery |
+| `core` | Landing page, search, and shared application views |
+| `flowboard` | Main configuration, URL routing, and ASGI setup |
 
 ---
 
-## Quickstart & Installation
+## System Architecture
 
-### 1. Set Up Environment & Install Dependencies
+Flowboard uses HTTP APIs for regular application operations and WebSockets for real-time communication.
+
+```mermaid
+flowchart TD
+    A[Browser / Vanilla JavaScript] --> B[Django Application]
+    A <-->|WebSocket| C[Django Channels]
+
+    B --> D[Projects Service Layer]
+    D --> E[(SQLite Database)]
+
+    D --> F[Activity Logging]
+    D --> G[Notification Dispatch]
+
+    C --> H[Board Consumer]
+    C --> I[Notification Consumer]
+
+    H --> J[Connected Board Members]
+    I --> K[Individual User Notifications]
+```
+
+### WebSocket Endpoints
+
+| Endpoint | Purpose |
+|---|---|
+| `ws/board/<project_id>/` | Live board synchronization and presence |
+| `ws/notifications/` | Per-user real-time notifications |
+
+---
+
+## Installation & Setup
+
+Follow these instructions to run Flowboard locally.
+
+### Prerequisites
+
+- Python 3.10 or higher (Python 3.13 recommended).
+- Git.
+- pip.
+
+### 1. Clone the Repository
 
 ```bash
-# Navigate to project directory
-cd flowboard
+git clone https://github.com/<your-username>/<your-repository>.git
+cd <your-repository>
+```
 
-# Create virtual environment
+### 2. Create a Virtual Environment
+
+**Windows (PowerShell):**
+
+```powershell
 python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
 
-# Activate virtual environment
-# Windows:
-.venv\Scripts\activate
-# Linux/macOS:
+**macOS / Linux:**
+
+```bash
+python3 -m venv .venv
 source .venv/bin/activate
+```
 
-# Install requirements
+### 3. Install Dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Apply Migrations & Seed Demo Data
+### 4. Apply Database Migrations
 
 ```bash
-# Apply database schema
 python manage.py migrate
+```
 
-# Seed 5 demo users, 2 rich projects, and 22+ realistic engineering tasks
+### 5. Generate Demo Data
+
+```bash
 python manage.py seed_demo
 ```
 
-### 3. Run the ASGI Server
+The command provisions 5 demo users, 2 sample projects, and 22+ tasks.
 
-You can run Flowboard using Daphne directly or through Django's runserver:
+### 6. Start the ASGI Server
+
+**Option A — Run using Daphne:**
 
 ```bash
-# Using Daphne directly:
 daphne -b 127.0.0.1 -p 8000 flowboard.asgi:application
+```
 
-# Or using manage.py (Daphne takes over runserver automatically):
+**Option B — Run using Django:**
+
+```bash
 python manage.py runserver 8000
 ```
 
-Open your browser to: **`http://127.0.0.1:8000`**
+Open your browser:
+
+**http://127.0.0.1:8000/**
 
 ---
 
 ## Demo Credentials
 
-All seeded accounts have the password: **`password123`**
+All seeded accounts use the following demo password:
 
-| Username | Name | Role | Email |
-|---|---|---|---|
-| **`alex`** (Superuser) | Alex Chen | Team Lead & Product | alex@flowboard.dev |
-| **`sarah`** | Sarah Miller | Senior Backend Engineer | sarah@flowboard.dev |
-| **`elena`** | Elena Rostova | Frontend & UI Specialist | elena@flowboard.dev |
-| **`marcus`** | Marcus Vance | Systems & Cloud Architect | marcus@flowboard.dev |
-| **`priya`** | Priya Sharma | QA & Release Engineer | priya@flowboard.dev |
+`password123`
 
----
+| Username | Name | Role |
+|---|---|---|
+| `alex` | Alex Chen | Team Lead & Product |
+| `sarah` | Sarah Miller | Senior Backend Engineer |
+| `elena` | Elena Rostova | Frontend & UI Specialist |
+| `marcus` | Marcus Vance | Systems & Cloud Architect |
+| `priya` | Priya Sharma | QA & Release Engineer |
 
-## How to Test Real-Time Collaboration (Two Browser Windows)
-
-1. Open **Browser Window 1** and log in as `alex` (`password123`).
-2. Open **Browser Window 2** (incognito window or different browser) and log in as `sarah` (`password123`).
-3. Navigate both windows to the same board: **Acme Mobile App v2.0**.
-4. Observe the collaboration in real time:
-   - **Presence Indicators**: In the top bar next to the search box, notice both user avatars appear live as active viewers of the board.
-   - **Live Drag and Drop**: Drag a task card from *To Do* to *In Progress* in Window 1. Window 2 immediately glides the card into the new column with a subtle highlight, with zero page reload.
-   - **Live Comments & Mentions**: Open a card in Window 2, write a comment typing `@alex can you review the schema?` and submit. In Window 1, Alex's notification bell badge pops to `+1`, a toast slides in, and the comment appears instantly in the task drawer!
-   - **Live Card Creation**: In Window 1, click *Add card* at the bottom of any column and type a title. The new card pops instantly onto Window 2.
+**Note:** These credentials are intended only for local demonstration. Do not use them for a public production deployment.
 
 ---
 
-## Running the Automated End-to-End Test Suite
+## Testing Real-Time Collaboration
 
-Flowboard includes an automated Playwright E2E suite covering 100% of the UI checklist:
+One of Flowboard's key capabilities is live collaboration between multiple users.
+
+Follow these steps to experience it:
+
+**Step 1 — Open the first browser window**
+
+- Start Flowboard.
+- Log in using `alex`.
+- Open the project board named `Acme Mobile App v2.0`.
+
+**Step 2 — Open a second browser window**
+
+- Use an incognito window or a different browser.
+- Log in using `sarah`.
+- Navigate to the same project board.
+
+**Step 3 — Test live synchronization**
+
+| Action | Expected Result |
+|---|---|
+| Open the same board | Both users appear in live presence indicators |
+| Move a task card | The other browser updates the card position |
+| Add a comment | The comment appears in the other browser |
+| Mention `@alex` | Alex receives a real-time notification |
+| Create a new card | The card appears in both browser windows |
+
+All synchronization takes place without requiring a full-page reload.
+
+---
+
+## Automated Testing
+
+Flowboard includes a Playwright-based end-to-end test suite.
+
+### Install Playwright Chromium
 
 ```bash
-# Install Chromium for Playwright (if not already installed)
 python -m playwright install chromium
+```
 
-# Run the test suite
+### Run the E2E Test Suite
+
+```bash
 python test_e2e.py
 ```
 
-**Results:**
+### Test Coverage
+
+The automated test harness verifies the interactive UI checklist and application workflows across browser sessions.
+
+**Reported test result:**
+
 ```text
 ============================================================
-SUCCESS: 100% of UI checklist verified with 0 failures and 0 console errors!
+SUCCESS: 100% of UI checklist verified
+with 0 failures and 0 console errors!
 ============================================================
 ```
+
+<badge color="success">15/15 E2E checks passing</badge>
+
+---
+
+## Engineering Highlights
+
+**Real-Time Architecture:** WebSocket communication enables synchronized board activities and notification delivery.
+
+**Transactional Operations:** A centralized service layer coordinates database mutations, activity logs, and event dispatch.
+
+**Role-Based Access Control:** Project owners and members have different permissions enforced by the backend.
+
+**Presence Tracking:** Connected collaborators are represented through live board presence indicators.
+
+**Resilient Connections:** WebSocket clients implement reconnection with exponential backoff and heartbeat pings.
+
+**Automated Verification:** Playwright tests validate interactive workflows across browser sessions.
+
+**Zero Dead UI:** The project includes a dedicated `UI_CHECKLIST.md` to track interactive controls and their functionality.
+
+---
+
+## Future Improvements
+
+Potential enhancements for future versions:
+
+- Redis-backed channel layer for multi-process and production deployments.
+- Advanced project analytics and reporting.
+- File attachments for tasks.
+- More granular project permissions.
+- Email-based notification delivery.
+- Extended automated load and concurrency testing.
+
+---
+
+## Internship Information
+
+| Detail | Information |
+|---|---|
+| Organization | **CodeAlpha** |
+| Internship | Full Stack Development |
+| Task | **Task 3 — Project Management Tool** |
+| Project | **Flowboard** |
+| Backend | Django 5.1 |
+| Real-Time Layer | Django Channels 4.3 |
+| Frontend | HTML5, CSS3, Vanilla JavaScript |
+| Database | SQLite |
 
 ---
 
 ## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**. See the [`LICENSE`](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+# FLOWBOARD
+
+**Organize Work. Connect Teams. Move Forward.**
+
+Built as part of the **CodeAlpha Full Stack Development Internship — Task 3**.
+
+</div>
