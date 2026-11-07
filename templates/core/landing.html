@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome to Flowboard{% endblock %}
+
+{% block auth_content %}
+<div style="min-height: 100vh; display: flex; flex-direction: row; background-color: var(--bg-canvas);">
+  <!-- Left Side: Brand & Product Value (Restrained, calm, Linear-style) -->
+  <div style="flex: 1.1; display: flex; flex-direction: column; justify-content: space-between; padding: 64px 80px; background-color: var(--bg-surface); border-right: 1px solid var(--border);">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 72px;">
+        <svg style="width: 28px; height: 28px; color: var(--accent);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="9" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="5" rx="1"></rect>
+          <rect x="14" y="12" width="7" height="9" rx="1"></rect>
+          <rect x="3" y="16" width="7" height="5" rx="1"></rect>
+        </svg>
+        <span style="font-size: 20px; font-weight: 600; letter-spacing: -0.02em;">Flowboard</span>
+      </div>
+
+      <div style="max-width: 520px;">
+        <h1 style="font-size: 32px; font-weight: 600; line-height: 1.25; letter-spacing: -0.03em; color: var(--text-primary); margin-bottom: 20px;">
+          Project coordination built for speed and clarity.
+        </h1>
+        <p style="font-size: 16px; line-height: 1.6; color: var(--text-secondary); margin-bottom: 40px;">
+          A minimal, collaborative task tracking system designed for engineering teams. Real-time updates, zero reloads, and focused workflows.
+        </p>
+
+        <!-- Subtle architectural specs -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding-top: 32px; border-top: 1px solid var(--border);">
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Real-Time Collaboration</div>
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">Sub-millisecond WebSocket events for cards, columns, and presence.</div>
+          </div>
+          <div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Zero Dead UI</div>
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">Every control is backed by transactional endpoints and live state.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo login hint -->
+    <div style="background-color: var(--bg-canvas); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px 20px; max-width: 480px;">
+      <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px;">Evaluation Demo Credentials</div>
+      <div style="font-size: 13px; color: var(--text-secondary); display: flex; gap: 20px;">
+        <div>Username: <strong style="color: var(--text-primary);">alex</strong></div>
+        <div>Password: <strong style="color: var(--text-primary);">password123</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Clean Login Form -->
+  <div style="flex: 0.9; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 48px 60px;">
+    <div style="width: 100%; max-width: 360px;">
+      <div style="margin-bottom: 28px;">
+        <h2 style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">Sign in to Flowboard</h2>
+        <p style="font-size: 13px; color: var(--text-secondary);">Enter your account credentials to continue.</p>
+      </div>
+
+      <form action="{% url 'accounts:login' %}" method="POST" id="landingLoginForm">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label" for="id_username">Username or Email</label>
+          <input type="text" name="username" id="id_username" class="form-input" placeholder="e.g. alex" required autofocus>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="id_password">Password</label>
+          <input type="password" name="password" id="id_password" class="form-input" placeholder="Password" required>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <button type="submit" class="btn btn-primary" style="width: 100%; height: 36px;" id="landingLoginBtn">
+            Sign In
+          </button>
+        </div>
+      </form>
+
+      <div style="margin-top: 24px; text-align: center; font-size: 13px; color: var(--text-secondary);">
+        Don't have an account? <a href="{% url 'accounts:register' %}" style="color: var(--accent); font-weight: 500;" id="linkGoToRegister">Create account</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,7 +1,12 @@
 from django.urls import path
+from . import views
 
 app_name = 'accounts'
 
 urlpatterns = [
-    # auth & profile views
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('logout/', views.logout_view, name='logout'),
+    path('profile/', views.profile_view, name='profile'),
+    path('api/profile/update/', views.api_profile_update, name='api_profile_update'),
 ]

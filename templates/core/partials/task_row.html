@@ -1,0 +1,30 @@
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); transition: background-color var(--duration-fast) var(--ease);" class="task-row-item">
+  <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+    <span class="priority-dot {{ task.priority }}" title="Priority: {{ task.priority|capfirst }}"></span>
+    <a href="{% url 'projects:project_board' task.project_id %}?task={{ task.id }}" style="font-size: 13px; font-weight: 500; color: var(--text-primary); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="taskRowLink-{{ task.id }}">
+      {{ task.title }}
+    </a>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 14px; flex-shrink: 0; font-size: 12px;">
+    <!-- Project tag -->
+    <a href="{% url 'projects:project_board' task.project_id %}" style="display: flex; align-items: center; gap: 6px; color: var(--text-secondary);">
+      <span class="project-tag-dot" style="background-color: {{ task.project.color|default:'#2563EB' }};"></span>
+      <span>{{ task.project.name }}</span>
+    </a>
+
+    <!-- Column badge -->
+    <span style="background-color: var(--bg-subtle); padding: 2px 8px; border-radius: var(--radius-sm); color: var(--text-secondary);">
+      {{ task.column.name }}
+    </span>
+
+    <!-- Due date -->
+    {% if task.due_date %}
+    <span style="{% if is_overdue %}color: var(--danger); font-weight: 600;{% else %}color: var(--text-muted);{% endif %}">
+      {{ task.due_date|date:"M d" }}
+    </span>
+    {% else %}
+    <span style="color: var(--text-muted);">—</span>
+    {% endif %}
+  </div>
+</div>

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}My Tasks — Flowboard{% endblock %}
+
+{% block content %}
+<div style="padding: 32px 40px; max-width: 1100px; width: 100%; margin: 0 auto;">
+  <!-- Header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h1 style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">My Tasks</h1>
+      <p style="font-size: 13px; color: var(--text-secondary);">Everything assigned to you across all projects, grouped by due date.</p>
+    </div>
+
+    <!-- Filters -->
+    <form method="GET" action="{% url 'core:my_tasks' %}" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;" id="myTasksFilterForm">
+      <input type="text" name="q" value="{{ search_query|default:'' }}" class="filter-input" placeholder="Search my tasks..." id="myTasksSearchInput" style="width: 160px;">
+
+      <select name="project" class="filter-select" id="myTasksProjectFilter" onchange="this.form.submit();">
+        <option value="">All Projects</option>
+        {% for p in user_projects %}
+        <option value="{{ p.id }}" {% if selected_project == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="priority" class="filter-select" id="myTasksPriorityFilter" onchange="this.form.submit();">
+        <option value="">All Priorities</option>
+        <option value="high" {% if selected_priority == 'high' %}selected{% endif %}>High Priority</option>
+        <option value="medium" {% if selected_priority == 'medium' %}selected{% endif %}>Medium Priority</option>
+        <option value="low" {% if selected_priority == 'low' %}selected{% endif %}>Low Priority</option>
+      </select>
+
+      {% if search_query or selected_project or selected_priority %}
+      <a href="{% url 'core:my_tasks' %}" class="btn btn-ghost btn-sm" id="btnClearMyTasksFilters">Clear filters</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if total_count == 0 %}
+  <div class="empty-state" style="background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg);">
+    <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+    <div class="empty-state-title">No assigned tasks found</div>
+    <div class="empty-state-desc">You are all caught up! No tasks match your current criteria.</div>
+  </div>
+  {% else %}
+
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- Overdue -->
+    {% if overdue %}
+    <section>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+        <span style="font-size: 13px; font-weight: 600; color: var(--danger);">Overdue</span>
+        <span class="column-badge" style="background-color: var(--danger-subtle); color: var(--danger-text);">{{ overdue|length }}</span>
+      </div>
+      <div style="background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;">
+        {% for t in overdue %}
+        {% include 'core/partials/task_row.html' with task=t is_overdue=True %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Due Today -->
+    {% if due_today %}
+    <section>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+        <span style="font-size: 13px; font-weight: 600; color: var(--warning);">Due Today</span>
+        <span class="column-badge" style="background-color: #FEF3C7; color: #92400E;">{{ due_today|length }}</span>
+      </div>
+      <div style="background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;">
+        {% for t in due_today %}
+        {% include 'core/partials/task_row.html' with task=t is_overdue=False %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Upcoming -->
+    {% if due_soon %}
+    <section>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+        <span style="font-size: 13px; font-weight: 600; color: var(--accent);">Upcoming (Next 7 Days)</span>
+        <span class="column-badge">{{ due_soon|length }}</span>
+      </div>
+      <div style="background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;">
+        {% for t in due_soon %}
+        {% include 'core/partials/task_row.html' with task=t is_overdue=False %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Later -->
+    {% if later %}
+    <section>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+        <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Later</span>
+        <span class="column-badge">{{ later|length }}</span>
+      </div>
+      <div style="background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;">
+        {% for t in later %}
+        {% include 'core/partials/task_row.html' with task=t is_overdue=False %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- No Due Date -->
+    {% if no_date %}
+    <section>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+        <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">No Due Date</span>
+        <span class="column-badge">{{ no_date|length }}</span>
+      </div>
+      <div style="background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;">
+        {% for t in no_date %}
+        {% include 'core/partials/task_row.html' with task=t is_overdue=False %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

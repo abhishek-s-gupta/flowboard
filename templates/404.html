@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}404 Not Found — Flowboard{% endblock %}
+
+{% block content %}
+<div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px;">
+  <div class="empty-state" style="max-width: 440px; background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 40px 32px;">
+    <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+    <div class="empty-state-title" style="font-size: 18px;">Page Not Found (404)</div>
+    <div class="empty-state-desc">The requested resource, task, or project does not exist or has been removed.</div>
+    <a href="{% url 'projects:project_list' %}" class="btn btn-primary" id="btnBackToProjects404" style="margin-top: 10px;">
+      Return to Workspace
+    </a>
+  </div>
+</div>
+{% endblock %}

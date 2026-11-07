@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}All Projects — Flowboard{% endblock %}
+
+{% block content %}
+<div style="padding: 32px 40px; max-width: 1200px; width: 100%; margin: 0 auto;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px;">
+    <div>
+      <h1 style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Projects</h1>
+      <p style="font-size: 13px; color: var(--text-secondary);">Your active collaborative project boards and workstreams.</p>
+    </div>
+    <button type="button" class="btn btn-primary" id="btnCreateProjectTop" onclick="document.getElementById('createProjectModal').classList.add('open');">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      <span>New Project</span>
+    </button>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;" id="projectsGrid">
+    {% for p in projects %}
+    <div style="background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: border-color var(--duration-fast) var(--ease), box-shadow var(--duration-fast) var(--ease);" class="project-card-item">
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="project-tag-dot" style="background-color: {{ p.color|default:'#2563EB' }}; width: 10px; height: 10px;"></span>
+            <span style="font-size: 12px; font-weight: 500; color: var(--text-muted);">
+              {% if p.owner_id == request.user.id %}Owner{% else %}Member{% endif %}
+            </span>
+          </div>
+          <a href="{% url 'projects:project_settings' p.id %}" class="icon-btn btn-sm" title="Project settings" id="projSettingsBtn-{{ p.id }}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </a>
+        </div>
+
+        <a href="{% url 'projects:project_board' p.id %}" style="display: block; margin-bottom: 8px;">
+          <h2 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;" id="projectTitle-{{ p.id }}">{{ p.name }}</h2>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ p.description|default:'No description provided.' }}
+          </p>
+        </a>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); margin-top: 16px;">
+        <div style="display: flex; gap: 14px;">
+          <span><strong>{{ p.task_count }}</strong> tasks</span>
+          <span><strong>{{ p.member_count }}</strong> members</span>
+        </div>
+        <a href="{% url 'projects:project_board' p.id %}" class="btn btn-secondary btn-sm" id="btnOpenBoard-{{ p.id }}">
+          Open Board &rarr;
+        </a>
+      </div>
+    </div>
+    {% empty %}
+    <div style="grid-column: 1 / -1;" class="empty-state">
+      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+      <div class="empty-state-title">No projects found</div>
+      <div class="empty-state-desc">You are not part of any project yet. Create your first project board to get started.</div>
+      <button type="button" class="btn btn-primary" onclick="document.getElementById('createProjectModal').classList.add('open');" id="btnEmptyStateNewProject">
+        Create Project
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

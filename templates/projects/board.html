@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ project.name }} — Flowboard{% endblock %}
+
+{% block content %}
+<div class="board-container" id="boardRoot" data-project-id="{{ project.id }}">
+  <!-- Board Header -->
+  <header class="board-header">
+    <div class="board-title-cluster">
+      <span class="project-tag-dot" style="background-color: {{ project.color|default:'#2563EB' }}; width: 12px; height: 12px;"></span>
+      <h1 class="board-title" id="boardProjectTitle">{{ project.name }}</h1>
+      <span style="font-size: 12px; font-weight: 500; color: var(--text-muted); background-color: var(--bg-subtle); padding: 2px 8px; border-radius: var(--radius-sm);" id="boardUserRoleBadge">
+        {{ user_role|capfirst }}
+      </span>
+      <a href="{% url 'projects:project_settings' project.id %}" class="icon-btn btn-sm" title="Project settings & members" id="btnProjectSettings">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </a>
+    </div>
+
+    <!-- Filters & Action Toolbar -->
+    <div class="board-filters">
+      <input type="text" class="filter-input" placeholder="Filter cards..." id="boardCardFilterInput" style="width: 140px;">
+
+      <select class="filter-select" id="boardAssigneeFilter" aria-label="Filter by Assignee">
+        <option value="">All assignees</option>
+        {% for m in memberships %}
+        <option value="{{ m.user.id }}">{{ m.user.profile.name }}</option>
+        {% endfor %}
+      </select>
+
+      <select class="filter-select" id="boardPriorityFilter" aria-label="Filter by Priority">
+        <option value="">All priorities</option>
+        <option value="high">High priority</option>
+        <option value="medium">Medium priority</option>
+        <option value="low">Low priority</option>
+      </select>
+
+      <select class="filter-select" id="boardLabelFilter" aria-label="Filter by Label">
+        <option value="">All labels</option>
+        {% for l in labels %}
+        <option value="{{ l.id }}">{{ l.name }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="button" class="btn btn-secondary btn-sm" id="btnAddNewColumn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>Add Column</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Kanban Board Columns Canvas -->
+  <div class="board-canvas" id="boardCanvas">
+    {% for col in columns %}
+    <div class="board-column" data-column-id="{{ col.id }}" id="column-{{ col.id }}">
+      <div class="column-header">
+        <div class="column-header-left">
+          <span class="column-name" id="colName-{{ col.id }}">{{ col.name }}</span>
+          <span class="column-badge" id="colCount-{{ col.id }}">{{ col.tasks.count }}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 2px;">
+          <button type="button" class="icon-btn btn-sm btn-rename-col" data-column-id="{{ col.id }}" title="Rename column" aria-label="Rename column">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          </button>
+          <button type="button" class="icon-btn btn-sm btn-delete-col" data-column-id="{{ col.id }}" title="Delete column" aria-label="Delete column">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Task cards list -->
+      <div class="column-cards-container" id="cardsContainer-{{ col.id }}">
+        {% for task in col.tasks.all %}
+        <div class="task-card" draggable="true" data-task-id="{{ task.id }}" data-column-id="{{ col.id }}" data-priority="{{ task.priority }}" data-assignee-id="{{ task.assignee_id|default:'' }}" data-labels="{% for l in task.labels.all %}{{ l.id }},{% endfor %}" tabindex="0" role="button" aria-label="Task {{ task.title }}" id="taskCard-{{ task.id }}">
+          <div class="card-top-row">
+            <div class="card-labels">
+              {% for l in task.labels.all %}
+              <span class="label-chip" style="background-color: {{ l.color }}20; color: {{ l.color }}; border: 1px solid {{ l.color }}40;">
+                {{ l.name }}
+              </span>
+              {% endfor %}
+            </div>
+            <span class="priority-dot {{ task.priority }}" title="Priority: {{ task.priority|capfirst }}"></span>
+          </div>
+
+          <div class="card-title">{{ task.title }}</div>
+
+          <div class="card-bottom-row">
+            <div class="card-meta-left">
+              {% if task.due_date %}
+              <span class="card-due-date {% if task.due_date < today %}overdue{% endif %}" title="Due date: {{ task.due_date }}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span>{{ task.due_date|date:"M d" }}</span>
+              </span>
+              {% endif %}
+
+              {% if task.comments.count > 0 %}
+              <span class="card-comment-count" title="{{ task.comments.count }} comments">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>{{ task.comments.count }}</span>
+              </span>
+              {% endif %}
+            </div>
+
+            {% if task.assignee %}
+            <div class="avatar avatar-sm" style="background-color: {{ task.assignee.profile.avatar_color|default:'#2563EB' }};" title="Assigned to {{ task.assignee.profile.name }}">
+              {% if task.assignee.profile.avatar_url %}
+              <img src="{{ task.assignee.profile.avatar_url }}" alt="{{ task.assignee.profile.name }}">
+              {% else %}
+              <span>{{ task.assignee.profile.initials }}</span>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Add card footer -->
+      <div class="column-footer">
+        <div class="add-card-wrapper" id="addCardWrapper-{{ col.id }}">
+          <button type="button" class="btn btn-ghost btn-sm btn-show-add-card" data-column-id="{{ col.id }}" style="width: 100%; justify-content: flex-start; color: var(--text-muted);" id="btnTriggerAddCard-{{ col.id }}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Add card</span>
+          </button>
+          <div class="add-card-form" id="addCardForm-{{ col.id }}" style="display: none;">
+            <textarea class="form-textarea add-card-textarea" id="addCardText-{{ col.id }}" placeholder="Enter a title for this card..." rows="2" style="font-size: 13px; margin-bottom: 8px;"></textarea>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <button type="button" class="btn btn-primary btn-sm btn-submit-add-card" data-column-id="{{ col.id }}" id="btnSubmitAddCard-{{ col.id }}">Add card</button>
+              <button type="button" class="btn btn-ghost btn-sm btn-cancel-add-card" data-column-id="{{ col.id }}" id="btnCancelAddCard-{{ col.id }}">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- Add column end button -->
+    <button type="button" class="add-column-btn" id="btnAddNewColumnEnd">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      <span>Add another column</span>
+    </button>
+  </div>
+</div>
+
+<!-- Task Detail Slide-out Drawer Panel -->
+<div class="drawer-panel" id="taskDetailDrawer" role="dialog" aria-modal="true" aria-labelledby="taskDrawerTitleInput">
+  <div class="drawer-header">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 12px; font-weight: 500; color: var(--text-muted);" id="taskDrawerBreadcrumb">TASK</span>
+      <button type="button" class="btn btn-danger btn-sm" id="btnDeleteTaskInDrawer">Delete Task</button>
+    </div>
+    <button type="button" class="icon-btn" id="btnCloseDrawer" aria-label="Close task details">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </div>
+
+  <div class="drawer-body" id="taskDrawerBody">
+    <!-- Title Input -->
+    <div>
+      <input type="text" class="task-title-input" id="taskDrawerTitleInput" placeholder="Task title..." autocomplete="off">
+    </div>
+
+    <!-- Meta Fields Grid -->
+    <div class="task-meta-grid">
+      <div class="meta-label">Status</div>
+      <div>
+        <select class="form-select" id="taskDrawerColumnSelect" style="height: 32px; font-size: 13px;">
+          {% for c in columns %}
+          <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="meta-label">Assignee</div>
+      <div>
+        <select class="form-select" id="taskDrawerAssigneeSelect" style="height: 32px; font-size: 13px;">
+          <option value="">Unassigned</option>
+          {% for m in memberships %}
+          <option value="{{ m.user.id }}">{{ m.user.profile.name }} (@{{ m.user.username }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="meta-label">Priority</div>
+      <div>
+        <select class="form-select" id="taskDrawerPrioritySelect" style="height: 32px; font-size: 13px;">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+
+      <div class="meta-label">Due Date</div>
+      <div>
+        <input type="date" class="form-input" id="taskDrawerDueDateInput" style="height: 32px; font-size: 13px; max-width: 180px;">
+      </div>
+
+      <div class="meta-label">Labels</div>
+      <div id="taskDrawerLabelsContainer" style="display: flex; flex-wrap: wrap; gap: 6px;">
+        {% for l in labels %}
+        <label style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; background: var(--bg-canvas); border: 1px solid var(--border); padding: 2px 8px; border-radius: var(--radius-sm); cursor: pointer;">
+          <input type="checkbox" value="{{ l.id }}" class="task-drawer-label-cb" style="accent-color: {{ l.color }};">
+          <span>{{ l.name }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div>
+      <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">Description</div>
+      <textarea class="form-textarea" id="taskDrawerDescInput" rows="4" placeholder="Add a more detailed description..."></textarea>
+      <div style="margin-top: 6px; display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary btn-sm" id="btnSaveTaskDesc">Save Description</button>
+      </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="comments-section">
+      <div style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Activity & Comments</div>
+
+      <!-- Add Comment Form -->
+      <div style="display: flex; gap: 10px;">
+        <div class="avatar avatar-sm" style="background-color: {{ request.user.profile.avatar_color|default:'#2563EB' }}; margin-top: 4px;">
+          <span>{{ request.user.profile.initials|default:'FB' }}</span>
+        </div>
+        <div style="flex: 1;">
+          <textarea class="form-textarea" id="taskNewCommentInput" rows="2" placeholder="Write a comment... use @username to notify members" style="font-size: 13px; margin-bottom: 6px;"></textarea>
+          <div style="display: flex; justify-content: flex-end;">
+            <button type="button" class="btn btn-primary btn-sm" id="btnSubmitNewComment">Comment</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chronological Comments list -->
+      <div id="taskDrawerCommentsList" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Task Activity Log -->
+      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">History</div>
+        <div id="taskDrawerActivitiesList" style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--text-secondary);">
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Column -->
+<div class="modal-overlay" id="addColumnModal">
+  <div class="modal-content" style="max-width: 400px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Add Column</h3>
+      <button type="button" class="icon-btn" id="closeAddColumnModal" aria-label="Close modal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" for="newColNameInput">Column Name *</label>
+        <input type="text" class="form-input" id="newColNameInput" placeholder="e.g. In QA, Deployed" required>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="cancelAddColumnModal">Cancel</button>
+      <button type="button" class="btn btn-primary" id="submitAddColumnModal">Add Column</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Rename Column -->
+<div class="modal-overlay" id="renameColumnModal">
+  <div class="modal-content" style="max-width: 400px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Rename Column</h3>
+      <button type="button" class="icon-btn" id="closeRenameColumnModal" aria-label="Close modal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="renameColIdInput">
+      <div class="form-group">
+        <label class="form-label" for="renameColNameInput">New Name *</label>
+        <input type="text" class="form-input" id="renameColNameInput" required>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="cancelRenameColumnModal">Cancel</button>
+      <button type="button" class="btn btn-primary" id="submitRenameColumnModal">Save Name</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Confirm Delete -->
+<div class="modal-overlay" id="confirmDeleteModal">
+  <div class="modal-content" style="max-width: 420px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="confirmDeleteTitle">Confirm Deletion</h3>
+      <button type="button" class="icon-btn" id="closeConfirmDeleteModal" aria-label="Close modal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmDeleteMessage" style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;"></p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="cancelConfirmDelete">Cancel</button>
+      <button type="button" class="btn btn-danger" id="submitConfirmDelete">Delete</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="/static/js/dragdrop.js"></script>
+<script src="/static/js/board.js"></script>
+{% endblock %}

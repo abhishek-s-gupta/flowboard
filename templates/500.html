@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}500 Server Error — Flowboard{% endblock %}
+
+{% block content %}
+<div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px;">
+  <div class="empty-state" style="max-width: 440px; background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 40px 32px;">
+    <svg class="empty-state-icon" style="color: var(--danger);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+    <div class="empty-state-title" style="font-size: 18px;">Something went wrong (500)</div>
+    <div class="empty-state-desc">An unexpected server error occurred while processing your request. Please try again shortly.</div>
+    <a href="{% url 'projects:project_list' %}" class="btn btn-primary" id="btnBackToProjects500" style="margin-top: 10px;">
+      Return to Workspace
+    </a>
+  </div>
+</div>
+{% endblock %}

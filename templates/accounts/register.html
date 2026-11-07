@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account{% endblock %}
+
+{% block auth_content %}
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background-color: var(--bg-canvas);">
+  <div style="width: 100%; max-width: 420px; background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-sm);">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px;">
+      <svg style="width: 24px; height: 24px; color: var(--accent);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="9" rx="1"></rect>
+        <rect x="14" y="3" width="7" height="5" rx="1"></rect>
+        <rect x="14" y="12" width="7" height="9" rx="1"></rect>
+        <rect x="3" y="16" width="7" height="5" rx="1"></rect>
+      </svg>
+      <span style="font-size: 18px; font-weight: 600;">Flowboard</span>
+    </div>
+
+    <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 6px;">Create your account</h2>
+    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Join your team and coordinate work seamlessly</p>
+
+    <form method="POST" action="{% url 'accounts:register' %}" id="registerForm">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="id_display_name">Full Name *</label>
+        {{ form.display_name }}
+        {% if form.display_name.errors %}
+        <div class="form-error">{{ form.display_name.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="id_username">Username *</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+        <div class="form-error">{{ form.username.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="id_email">Email Address *</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+        <div class="form-error">{{ form.email.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="id_password">Password *</label>
+        {{ form.password }}
+        {% if form.password.errors %}
+        <div class="form-error">{{ form.password.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="id_password_confirm">Confirm Password *</label>
+        {{ form.password_confirm }}
+        {% if form.password_confirm.errors %}
+        <div class="form-error">{{ form.password_confirm.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div style="margin-top: 24px;">
+        <button type="submit" class="btn btn-primary" style="width: 100%; height: 36px;" id="btnRegisterSubmit">
+          Create Account
+        </button>
+      </div>
+    </form>
+
+    <div style="margin-top: 24px; text-align: center; font-size: 13px; color: var(--text-secondary);">
+      Already have an account? <a href="{% url 'accounts:login' %}" style="color: var(--accent); font-weight: 500;" id="linkLogin">Sign in</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

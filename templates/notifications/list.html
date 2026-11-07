@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications — Flowboard{% endblock %}
+
+{% block content %}
+<div style="padding: 32px 40px; max-width: 800px; width: 100%; margin: 0 auto;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+    <div>
+      <h1 style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Notifications</h1>
+      <p style="font-size: 13px; color: var(--text-secondary);">Updates on task assignments, comments, and mentions.</p>
+    </div>
+    {% if unread_count > 0 %}
+    <button type="button" class="btn btn-secondary btn-sm" id="btnMarkAllReadPage">
+      Mark all as read
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- Tabs: All vs Unread -->
+  <div style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+    <a href="{% url 'notifications:list' %}" class="btn btn-sm {% if filter_type == 'all' %}btn-primary{% else %}btn-ghost{% endif %}" id="tabAllNotifications">
+      All
+    </a>
+    <a href="{% url 'notifications:list' %}?filter=unread" class="btn btn-sm {% if filter_type == 'unread' %}btn-primary{% else %}btn-ghost{% endif %}" id="tabUnreadNotifications">
+      Unread {% if unread_count > 0 %}({{ unread_count }}){% endif %}
+    </a>
+  </div>
+
+  <div style="background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;" id="notificationsPageList">
+    {% for n in notifications %}
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--border); gap: 14px; transition: background-color var(--duration-fast) var(--ease);" class="notification-page-item {% if not n.is_read %}unread{% endif %}" id="notificationPageItem-{{ n.id }}">
+      <div style="display: flex; gap: 12px; flex: 1;">
+        <div class="avatar avatar-sm" style="background-color: {{ n.actor.profile.avatar_color|default:'#2563EB' }}; margin-top: 2px;">
+          {% if n.actor.profile.avatar_url %}
+          <img src="{{ n.actor.profile.avatar_url }}" alt="{{ n.actor.username }}">
+          {% else %}
+          <span>{{ n.actor.profile.initials|default:'FB' }}</span>
+          {% endif %}
+        </div>
+        <div style="flex: 1;">
+          <div style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
+            {{ n.title }}
+          </div>
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 6px;">
+            {{ n.message }}
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); display: flex; gap: 12px; align-items: center;">
+            <span>{{ n.created_at|date:"M d, H:i" }}</span>
+            {% if n.project %}
+            <a href="{% url 'projects:project_board' n.project.id %}{% if n.task %}?task={{ n.task.id }}{% endif %}" style="color: var(--accent); font-weight: 500;">
+              View on Board &rarr;
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if not n.is_read %}
+      <button type="button" class="btn btn-ghost btn-sm btn-mark-read-item" data-id="{{ n.id }}" title="Mark as read" id="btnMarkRead-{{ n.id }}">
+        Mark read
+      </button>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+      <div class="empty-state-title">No notifications</div>
+      <div class="empty-state-desc">You don't have any notifications in this tab.</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+  document.querySelectorAll('.btn-mark-read-item').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const id = this.dataset.id;
+      this.disabled = true;
+      try {
+        const res = await window.FlowboardApp.fetchJSON(`/notifications/api/${id}/read/`);
+        if (res.status === 'ok') {
+          const item = document.getElementById(`notificationPageItem-${id}`);
+          if (item) item.classList.remove('unread');
+          this.remove();
+          window.FlowboardApp.updateBadgeCount(res.unread_count);
+        }
+      } catch (err) {
+        window.FlowboardApp.showToast('Failed to update notification', 'error');
+        this.disabled = false;
+      }
+    });
+  });
+
+  const markAllBtn = document.getElementById('btnMarkAllReadPage');
+  if (markAllBtn) {
+    markAllBtn.addEventListener('click', async function() {
+      this.disabled = true;
+      try {
+        const res = await window.FlowboardApp.fetchJSON('/notifications/api/read-all/');
+        if (res.status === 'ok') {
+          window.FlowboardApp.updateBadgeCount(0);
+          window.location.reload();
+        }
+      } catch (err) {
+        window.FlowboardApp.showToast('Failed to mark all as read', 'error');
+        this.disabled = false;
+      }
+    });
+  }
+</script>
+{% endblock %}
